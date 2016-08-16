@@ -80,7 +80,7 @@ defmodule Interactor do
   """
   @spec call_task(module, map) :: Task.t
   def call_task(interactor, map) do
-    context = %{map | meta: %{task: true}}
+    context = set_meta(map, :task, true)
     Task.Supervisor.async(TaskSupervisor, Interactor, :call, [interactor, context])
   end
 
@@ -98,7 +98,7 @@ defmodule Interactor do
   """
   @spec call_async(module, map) :: {:ok, pid}
   def call_async(interactor, map) do
-    context = %{map | meta: %{async: true}}
+    context = set_meta(map, :async, true)
     if sync_tasks do
       t = Task.Supervisor.async(TaskSupervisor, Interactor, :call, [interactor, context])
       Task.await(t)
@@ -129,4 +129,11 @@ defmodule Interactor do
   defp sync_tasks do
     Application.get_env(:interactor, :force_syncronous_tasks, false)
   end
+
+  defp set_meta(context, key, value) do
+    context
+    |> Map.put_new(:meta, %{})
+    |> put_in([:meta, key], value)
+  end
 end
+
