@@ -48,6 +48,12 @@ defmodule InteractorTest do
     end
   end
 
+  defmodule MetaExample do
+    use Interactor
+    def handle_call(%{foo: foo, meta: meta}) do
+      {foo, meta}
+    end
+  end
   test "simple - calling call" do
     assert {:ok, "foobar"} = Interactor.call(SimpleExample, %{foo: "bar"})
   end
@@ -78,5 +84,12 @@ defmodule InteractorTest do
     assert {:ok, %{foo1: foo1, foo2: foo2}} = Task.await(task)
     assert foo1.foo == "bar"
     assert foo2.foo == "baz"
+  end
+
+  test "meta - calling call_async" do
+    task = Interactor.call_task(MetaExample, %{foo: "foo"})
+    assert {foo, meta} = Task.await(task)
+    assert foo == "foo"
+    assert meta == %{task: true}
   end
 end
